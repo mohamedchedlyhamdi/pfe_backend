@@ -1,61 +1,56 @@
 package tn.vermeg.vermegapplication.Controllers;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import tn.vermeg.vermegapplication.entities.Projet;
-import tn.vermeg.vermegapplication.entities.Utilisateur;
+import tn.vermeg.vermegapplication.entities.ProjetDTO;
 import tn.vermeg.vermegapplication.repository.ProjetRepository;
-import tn.vermeg.vermegapplication.repository.UtilisateurRepository;
 
+import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/projets")
 public class ProjectController {
 
-    private final UtilisateurRepository utilisateurRepository;
     private final ProjetRepository projetRepository;
 
-
-    private String jwtSecret;
-
     @Autowired
-    public ProjectController(UtilisateurRepository utilisateurRepository, ProjetRepository projetRepository) {
-        this.utilisateurRepository = utilisateurRepository;
+    public ProjectController(ProjetRepository projetRepository) {
         this.projetRepository = projetRepository;
     }
-    @PostMapping("/add")
+
+    @PostMapping("/addProject")
     public ResponseEntity<String> addProject(@RequestBody Projet project) {
+        project.setDerniereMaj(new Date());
+        projetRepository.save(project);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Project added successfully.");
+    }
+    @GetMapping("/allProjets")
+    public ResponseEntity<List<ProjetDTO>> getAllProjects() {
+        List<Projet> projects = projetRepository.findAll();
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // Convert Projet entities to ProjetDTO objects
+        List<ProjetDTO> projectDTOs = projects.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
 
+        return ResponseEntity.ok(projectDTOs);
+    }
 
-        if (authentication == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication is required to add a project.");
-        }
-
-
-        String userEmail = authentication.getName();
-
-
-        Utilisateur user = utilisateurRepository.findByEmail(userEmail);
-
-
-        if (user != null && (user.getMission().equals("directeur projet") || user.getMission().equals("chef projet"))) {
-
-            return ResponseEntity.status(HttpStatus.CREATED).body("Project added successfully.");
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Only users with missions 'chef projet' or 'directeur projet' can add projects.");
-        }
+    private ProjetDTO convertToDTO(Projet projet) {
+        ProjetDTO projetDTO = new ProjetDTO();
+        projetDTO.setId(projet.getId());
+        projetDTO.setNom(projet.getNom());
+        projetDTO.setNomUtilisateur(projet.getNomUtilisateur());
+        projetDTO.setDateEntree(projet.getDateEntree());
+        projetDTO.setDerniereMaj(projet.getDerniereMaj());
+        projetDTO.setDescription(projet.getDescription());
+        projetDTO.setEtat(projet.getEtat());
+        return projetDTO;
     }
 }
+

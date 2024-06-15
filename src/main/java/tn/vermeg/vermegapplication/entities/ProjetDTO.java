@@ -1,16 +1,15 @@
 package tn.vermeg.vermegapplication.entities;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 
-import java.sql.Blob;
 import java.util.Date;
 
-@Entity
-@Table(name = "projets")
-public class Projet {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class ProjetDTO {
+
     private Long id;
 
     private String nom;
@@ -18,34 +17,13 @@ public class Projet {
     @Column(name = "nom_utilisateur")
     private String nomUtilisateur;
 
-    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @Column(name = "date_entree")
     private Date dateEntree;
 
-    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @Column(name = "derniere_analyse")
     private Date derniereMaj;
-
-    private String description;
-    private String etat;
-
-    @Lob
-    @Column(name = "log_file")
-    private Blob logFile;
-
-    public Projet(){}
-
-    public Projet(String fileName, String username, Date dateEntree, Date derniereMaj, String description, String enCours, byte[] logFileContent) {}
-
-    public Projet(String nom, String nomUtilisateur, Date dateEntree, Date derniereMaj, String description, String etat, Blob logFile) {
-        this.nom = nom;
-        this.nomUtilisateur = nomUtilisateur;
-        this.dateEntree = dateEntree;
-        this.derniereMaj = derniereMaj;
-        this.description = description;
-        this.etat = etat;
-        this.logFile = logFile;
-    }
 
     public Long getId() {
         return id;
@@ -103,11 +81,8 @@ public class Projet {
         this.etat = etat;
     }
 
-    public Blob getLogFile() {
-        return logFile;
-    }
+public ProjetDTO(){}
 
-    public void setLogFile(Blob logFile) {
-        this.logFile = logFile;
-    }
+    private String description;
+    private String etat;
 }

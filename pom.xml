@@ -94,7 +94,61 @@
 			<artifactId>javax.annotation-api</artifactId>
 			<version>1.3.2</version>
 		</dependency>
+		<dependency>
+			<groupId>com.jcraft</groupId>
+			<artifactId>jsch</artifactId>
+			<version>0.1.55</version>
+		</dependency>
+		<dependency>
+			<groupId>net.logstash.log4j</groupId>
+			<artifactId>jsonevent-layout</artifactId>
+			<version>1.7</version>
+		</dependency>
+		<dependency>
+			<groupId>net.logstash.logback</groupId>
+			<artifactId>logstash-logback-encoder</artifactId>
+			<version>7.4</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-net</groupId>
+			<artifactId>commons-net</artifactId>
+			<version>3.8.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.httpcomponents.client5</groupId>
+			<artifactId>httpclient5</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
+	<configuration>
+		<include resource="org/springframework/boot/logging/logback/base.xml"/>
+
+		<appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+			<destination>localhost:5000</destination>
+			<encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+		</appender>
+
+		<root level="INFO">
+			<appender-ref ref="CONSOLE"/>
+			<appender-ref ref="FILE"/>
+			<appender-ref ref="LOGSTASH"/>
+		</root>
+	</configuration>
+	<Configuration>
+		<Appenders>
+			<Logstash name="Logstash" host="localhost" port="5000" type="Socket">
+				<PatternLayout pattern="%m%n"/>
+			</Logstash>
+		</Appenders>
+		<Loggers>
+			<Root level="info">
+				<AppenderRef ref="Logstash"/>
+			</Root>
+		</Loggers>
+	</Configuration>
+
 
 	<build>
 		<plugins>

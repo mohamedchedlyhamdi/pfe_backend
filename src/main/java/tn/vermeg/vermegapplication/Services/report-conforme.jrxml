@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="RGPD_Compliance_Notification" language="groovy" pageWidth="595" pageHeight="842" orientation="Portrait" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="07d372aa-2f92-4c25-b8e2-702ab0a37a88">
+    <property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+    <title>
+        <band height="100" splitType="Stretch"/>
+    </title>
+    <pageHeader>
+        <band height="100">
+            <image>
+                <reportElement x="0" y="0" width="100" height="100" uuid="481b882f-4be7-4611-b00c-d46c9265cfb2"/>
+                <imageExpression><![CDATA["src/main/java/tn/vermeg/vermegapplication/assets/logo.jpg"]]></imageExpression>
+            </image>
+            <textField>
+                <reportElement x="100" y="0" width="455" height="50" uuid="5f4fd9fd-7f8a-4ab1-9d8c-0f4f0b6b3183"/>
+                <textFieldExpression><![CDATA["Adresse de l'entreprise"]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="100" y="50" width="455" height="50" uuid="a6eac01a-77f2-4ff3-8488-60d6f3efaa2c"/>
+                <textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+            </textField>
+        </band>
+    </pageHeader>
+    <detail>
+        <band height="600" splitType="Stretch">
+            <textField>
+                <reportElement x="0" y="0" width="555" height="50" uuid="b9dd2013-126d-4db4-b5c8-232d27ef2611"/>
+                <textFieldExpression><![CDATA["Destinataire :"]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="0" y="50" width="555" height="50" uuid="edf8d364-3c4d-4d9b-b09b-79d5a2c9e6b2"/>
+                <textFieldExpression><![CDATA["Objet : Notification de conformité au RGPD"]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="0" y="100" width="555" height="450" uuid="5362925f-75a1-43f0-8f46-01a3bb1b06d4"/>
+                <textFieldExpression><![CDATA["Cher [Nom du destinataire],\n\nNous vous écrivons pour vous informer des mesures prises par [Nom de votre entreprise] pour assurer la conformité au Règlement général sur la protection des données (RGPD) de l'Union européenne. Le RGPD est une réglementation essentielle qui vise à protéger les données personnelles des individus et à garantir leur confidentialité.\n\nEn tant qu'entreprise responsable, nous accordons une importance primordiale à la protection des données de nos clients, partenaires et employés. Nous avons donc mis en place les politiques, procédures et contrôles appropriés pour garantir la conformité au RGPD. Voici un aperçu de nos efforts :\n\n- Nomination d'un délégué à la protection des données (DPD) chargé de superviser la conformité au RGPD et de servir de point de contact pour toute question liée à la protection des données.\n\n- Révision et mise à jour de nos politiques de confidentialité pour garantir qu'elles respectent les exigences du RGPD, y compris la transparence sur la collecte, le traitement et l'utilisation des données personnelles.\n\n- Mise en place de mesures de sécurité appropriées pour protéger les données personnelles contre tout accès non autorisé, divulgation, altération ou destruction.\n\n- Formation régulière de nos employés sur les principes du RGPD, les meilleures pratiques en matière de protection des données et leurs responsabilités individuelles dans le cadre de la conformité.\n\n- Évaluation régulière de nos processus internes de gestion des données pour garantir leur conformité continue au RGPD.\n\nNous nous engageons à respecter les droits des individus en ce qui concerne leurs données personnelles, y compris le droit à l'information, l'accès, la rectification, la suppression et la portabilité des données. De plus, nous nous engageons à signaler toute violation de données conformément aux exigences du RGPD.\n\nSi vous avez des questions concernant notre conformité au RGPD ou si vous souhaitez exercer vos droits en matière de protection des données, n'hésitez pas à nous contacter à l'adresse [adresse e-mail ou numéro de téléphone].\n\nNous vous remercions de votre confiance continue en [Nom de votre entreprise].\n\nCordialement,\n\n[Nom du signataire]\n[Titre du signataire]\n[Nom de l'entreprise]"]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+    <pageFooter>
+        <band height="50" splitType="Stretch"/>
+    </pageFooter>
+</jasperReport>

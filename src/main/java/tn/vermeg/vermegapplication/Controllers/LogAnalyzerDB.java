@@ -1,12 +1,12 @@
 package tn.vermeg.vermegapplication.Controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import tn.vermeg.vermegapplication.Controllers.FtpServiceController;
 import tn.vermeg.vermegapplication.entities.Projet;
 import tn.vermeg.vermegapplication.repository.ProjetRepository;
 
@@ -16,7 +16,6 @@ import java.io.StringReader;
 import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -29,51 +28,72 @@ public class LogAnalyzerDB {
     @Autowired
     private ProjetRepository projetRepository;
 
-    @PostMapping("/analyseDbLog")
-    public ResponseEntity<List<String>> processLogFile(@RequestBody LogAnalysisRequest request) throws IOException, SQLException {
-        // Retrieve the project from the database
-        Optional<Projet> optionalProject = projetRepository.findById(request.getProjetId());
+    @PostMapping("/analyseLogDb")
+    public ResponseEntity<List<String>> analyzeLogFile(@RequestBody LogAnalysisRequest request) {
+        try {
+            Optional<Projet> projectOptional = projetRepository.findById(request.getProjetId());
 
-        Blob logFileBlob;
-        if (optionalProject.isPresent()) {
-            Projet project = optionalProject.get();
-            // Get the log file from the project
-            logFileBlob = project.getLogFile();
+            if (projectOptional.isPresent()) {
+                Projet project = projectOptional.get();
+                Blob logFileBlob = project.getLogFile();
+                byte[] logFileData = logFileBlob.getBytes(1, (int) logFileBlob.length());
+                String logFileContent = new String(logFileData);
 
-        } else {
-            return ResponseEntity.notFound().build(); // Return 404 if project not found
-        }
+                String filterAttribute = request.getUploadRequest().getFilterAttribute();
+                String searchQueryPattern = request.getUploadRequest().getSearchQuery().get(filterAttribute);
 
-        // Convert Blob to byte array (assuming the log file is stored as a byte array in the database)
-        byte[] logFileData = logFileBlob.getBytes(1, (int) logFileBlob.length());
+                if (searchQueryPattern == null || searchQueryPattern.isEmpty()) {
+                    return ResponseEntity.badRequest().body(null);
+                }
 
-        // Convert byte array to String (assuming the log file content is stored as a String)
-        String logFileContent = new String(logFileData);
+                Pattern pattern = Pattern.compile(Pattern.quote(filterAttribute) + "\\s*[ :=]\\s*" + searchQueryPattern, Pattern.CASE_INSENSITIVE);
 
-        // Get the regex pattern from the searchQuery map based on filterAttribute
-        String filterAttribute = request.getUploadRequest().getFilterAttribute();
-        String searchQueryPattern = request.getUploadRequest().getSearchQuery().get(filterAttribute);
-        if (searchQueryPattern == null || searchQueryPattern.isEmpty()) {
-            return ResponseEntity.badRequest().body(Collections.singletonList("No search query provided for the given filter attribute"));
-        }
+                List<String> matchedSubstrings = new ArrayList<>();
 
-        // Create a combined pattern to match the filter attribute followed by the search query pattern
-        Pattern pattern = Pattern.compile(Pattern.quote(filterAttribute) + "\\s*[ :=]\\s*" + searchQueryPattern , Pattern.CASE_INSENSITIVE);
+                try (BufferedReader reader = new BufferedReader(new StringReader(logFileContent))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        Matcher matcher = pattern.matcher(line);
+                        while (matcher.find()) {
+                            String matchedSubstring = matcher.group();
+                            matchedSubstrings.add(matchedSubstring);
+                        }
+                    }
+                }
 
-        List<String> matchedSubstrings = new ArrayList<>();
+                List<String> results = new ArrayList<>();
+                for (String substring : matchedSubstrings) {
+                    String value = extractValue(substring, filterAttribute);
+                    if (isEncrypted(value)) {
+                        results.add(substring + " - Chiffrée");
+                    } else {
+                        results.add(substring + " - Non Chiffrée");
+                    }
+                }
 
-        // Process the log file and extract matched substrings
-        BufferedReader reader = new BufferedReader(new StringReader(logFileContent));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            Matcher matcher = pattern.matcher(line);
-            while (matcher.find()) {
-                // Extract the matched group which includes the filter attribute and the value
-                String matchedSubstring = matcher.group();
-                matchedSubstrings.add(matchedSubstring);
+                return ResponseEntity.ok().body(results);
+            } else {
+                return ResponseEntity.notFound().build();
             }
+        } catch (IOException | SQLException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
+    }
 
-        return ResponseEntity.ok(matchedSubstrings);
+    private String extractValue(String matchedSubstring, String filterAttribute) {
+        int startIndex = matchedSubstring.indexOf(filterAttribute) + filterAttribute.length();
+        return matchedSubstring.substring(startIndex).trim().replace("=", "").replace(":", "").trim();
+    }
+
+    private boolean isEncrypted(String value) {
+        if (value.length() < 16) {
+            return false;
+        }
+        String base64Pattern = "^[A-Za-z0-9+/=]+$";
+        if (value.matches(base64Pattern)) {
+            return true;
+        }
+        String hexPattern = "^[A-Fa-f0-9]+$";
+        return value.matches(hexPattern);
     }
 }

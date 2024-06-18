@@ -10,12 +10,11 @@ import tn.vermeg.vermegapplication.entities.Utilisateur;
 import tn.vermeg.vermegapplication.Services.UserService;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
 @RestController
 @RequestMapping("/api/users")
 @CrossOrigin(origins = "http://localhost:4200")
-
 public class UserController {
 
     private final UserService userService;
@@ -30,12 +29,15 @@ public class UserController {
         this.jwtUtils = jwtUtils;
     }
 
+    // Endpoint pour créer un utilisateur
     @PostMapping("/register")
     public ResponseEntity<Utilisateur> registerUser(@RequestBody Utilisateur newUser) {
         newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
         Utilisateur savedUser = userService.saveUser(newUser);
         return ResponseEntity.ok(savedUser);
     }
+
+    // Endpoint pour connecter un utilisateur
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> loginUser(@RequestBody Map<String, String> loginRequest) {
         String email = loginRequest.get("email");
@@ -53,4 +55,41 @@ public class UserController {
         return ResponseEntity.status(401).body(errorResponse);
     }
 
+    // Endpoint pour récupérer tous les utilisateurs
+    @GetMapping
+    public ResponseEntity<List<Utilisateur>> getAllUsers() {
+        List<Utilisateur> users = userService.getAllUsers();
+        return ResponseEntity.ok(users);
+    }
+
+    // Endpoint pour récupérer un utilisateur par son ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Utilisateur> getUserById(@PathVariable Long id) {
+        Utilisateur user = userService.getUserById(id);
+        if (user != null) {
+            return ResponseEntity.ok(user);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // Endpoint pour mettre à jour un utilisateur
+    @PutMapping("/{id}")
+    public ResponseEntity<Utilisateur> updateUser(@PathVariable Long id, @RequestBody Utilisateur updatedUser) {
+        Utilisateur existingUser = userService.getUserById(id);
+        if (existingUser != null) {
+            updatedUser.setId(id);
+            Utilisateur savedUser = userService.saveUser(updatedUser);
+            return ResponseEntity.ok(savedUser);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // Endpoint pour supprimer un utilisateur
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUserById(id);
+        return ResponseEntity.noContent().build();
+    }
 }
